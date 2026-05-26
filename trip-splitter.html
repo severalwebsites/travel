@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripSplit — Smart Travel Expense Splitter</title>
+<meta name="description" content="Split travel expenses fairly with your group. Share the link to sync with trip members.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#F9F8F6; --surface:#FFFFFF; --surface2:#F4F2EE; --surface3:#ECEAE5;
+  --border:rgba(0,0,0,0.07); --border-med:rgba(0,0,0,0.13);
+  --text:#1A1917; --text2:#6B6860; --text3:#A09E9A;
+  --green:#166534; --red:#991B1B; --orange:#C2410C;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.06);
+  --t:0.15s ease;
+}
+body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+/* ── TOPBAR ── */
+.topbar { position:sticky; top:0; z-index:200; background:rgba(249,248,246,0.9); backdrop-filter:blur(20px) saturate(180%); border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; }
+.brand { display:flex; align-items:center; gap:9px; font-size:15px; font-weight:600; letter-spacing:-0.3px; color:var(--text); text-decoration:none; }
+.brand-mark { width:24px; height:24px; background:var(--text); border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.brand-mark svg { width:13px; height:13px; }
+
+/* ── HERO ── */
+.hero { max-width:960px; margin:0 auto; padding:68px 32px 52px; display:grid; grid-template-columns:1fr auto; align-items:end; gap:28px; }
+.eyebrow { font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.eyebrow::before { content:''; display:block; width:16px; height:1px; background:var(--text3); }
+.hero h1 { font-family:'Lora',serif; font-size:clamp(32px,4.5vw,50px); font-weight:400; line-height:1.1; letter-spacing:-0.03em; margin-bottom:14px; }
+.hero h1 em { font-style:italic; color:var(--text2); }
+.hero-p { font-size:15px; color:var(--text2); line-height:1.7; max-width:400px; }
+.hero-right { display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+.hero-stats { display:flex; flex-direction:column; gap:10px; }
+.hstat { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:13px 18px; min-width:114px; box-shadow:var(--shadow-sm); }
+.hstat-val { font-family:'Lora',serif; font-size:25px; font-weight:400; line-height:1; margin-bottom:3px; }
+.hstat-lbl { font-size:10.5px; color:var(--text3); letter-spacing:0.05em; text-transform:uppercase; }
+.hero-share-btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 16px; background:var(--text); color:white; border:none; border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all var(--t); letter-spacing:-0.1px; }
+.hero-share-btn:hover { background:#2d2c2a; }
+.hero-share-btn:active { transform:scale(0.98); }
+
+/* ── AD ── */
+.ad-wrap { max-width:960px; margin:0 auto; padding:0 32px 26px; }
+.ad-slot { border:1px dashed var(--border-med); border-radius:var(--r-md); height:56px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text3); letter-spacing:0.07em; text-transform:uppercase; }
+
+/* ── APP GRID ── */
+.app { max-width:960px; margin:0 auto; padding:0 32px 80px; display:grid; grid-template-columns:296px 1fr; gap:18px; align-items:start; }
+
+/* ── PANEL ── */
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--shadow-sm); }
+.ph { padding:16px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.ph-title { font-size:13px; font-weight:600; letter-spacing:-0.1px; display:flex; align-items:center; gap:8px; }
+.ph-ico { width:24px; height:24px; background:var(--surface2); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ph-ico svg { width:13px; height:13px; stroke:var(--text2); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.pb { padding:18px 22px; }
+
+/* ── FORM ── */
+.field { margin-bottom:13px; }
+.field:last-child { margin-bottom:0; }
+.lbl { display:block; font-size:11.5px; font-weight:500; color:var(--text2); letter-spacing:0.02em; margin-bottom:5px; }
+.inp { width:100%; height:36px; padding:0 11px; background:var(--bg); border:1px solid var(--border-med); border-radius:var(--r-sm); font-family:'Inter',sans-serif; font-size:13.5px; color:var(--text); outline:none; transition:all var(--t); -webkit-appearance:none; }
+.inp:hover { border-color:rgba(0,0,0,0.2); }
+.inp:focus { border-color:var(--text); background:var(--surface); box-shadow:0 0 0 3px rgba(26,25,23,0.06); }
+.inp::placeholder { color:var(--text3); }
+.inp-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* ── BUTTONS ── */
+.btn { height:34px; padding:0 14px; border-radius:var(--r-sm); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--border-med); background:var(--surface); color:var(--text); transition:all var(--t); display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.btn:hover { background:var(--surface2); border-color:rgba(0,0,0,0.18); }
+.btn:active { transform:scale(0.98); }
+.btn-primary { background:var(--text); color:white; border-color:var(--text); }
+.btn-primary:hover { background:#2d2c2a; border-color:#2d2c2a; }
+.btn-sm { height:28px; padding:0 10px; font-size:12px; border-radius:6px; }
+.btn-full { width:100%; justify-content:center; }
+.btn-ghost { background:transparent; border-color:transparent; color:var(--text3); font-size:12px; }
+.btn-ghost:hover { background:var(--surface2); color:var(--text2); border-color:transparent; }
+.btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+/* ── PEOPLE ── */
+.people-grid { display:flex; flex-wrap:wrap; gap:6px; min-height:26px; margin-bottom:14px; }
+.pchip { display:flex; align-items:center; gap:5px; background:var(--surface2); border:1px solid var(--border); border-radius:50px; padding:4px 10px 4px 5px; font-size:12.5px; font-weight:500; transition:all var(--t); }
+.pchip:hover { border-color:var(--border-med); }
+.avxs { width:20px; height:20px; border-radius:50%; font-size:9px; font-weight:600; color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; letter-spacing:-0.3px; }
+.pchip-rm { cursor:pointer; color:var(--text3); padding:0 0 0 2px; background:none; border:none; font-family:inherit; line-height:1; display:flex; align-items:center; }
+.pchip-rm:hover { color:var(--red); }
+.pchip-rm svg { width:10px; height:10px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
+.add-row { display:flex; gap:6px; }
+
+/* ── SPLIT TOGGLES ── */
+.split-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.stoggle { display:flex; align-items:center; gap:5px; background:var(--surface2); border:1.5px solid transparent; border-radius:50px; padding:4px 10px 4px 5px; font-size:12.5px; font-weight:500; cursor:pointer; transition:all var(--t); user-select:none; }
+.stoggle:hover { border-color:var(--border-med); }
+.stoggle.on { background:var(--text); color:white; border-color:var(--text); }
+.split-actions { display:flex; gap:4px; margin-bottom:10px; }
+
+/* ── CATEGORY SELECT ── */
+.cat-select-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:2px; }
+.cat-opt { display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px 6px; border-radius:var(--r-sm); border:1.5px solid transparent; background:var(--surface2); cursor:pointer; transition:all var(--t); font-size:10.5px; font-weight:500; color:var(--text2); user-select:none; }
+.cat-opt:hover { border-color:var(--border-med); color:var(--text); }
+.cat-opt.on { background:var(--text); color:white; border-color:var(--text); }
+.cat-opt svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.cat-opt.on svg { stroke:white; }
+
+/* ── EXPENSE CARDS ── */
+.exp-list { display:flex; flex-direction:column; gap:8px; }
+.ecard { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:13px 15px; position:relative; transition:all var(--t); }
+.ecard:hover { border-color:var(--border-med); box-shadow:var(--shadow-sm); }
+.etop { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; }
+.ename-wrap { display:flex; align-items:center; gap:8px; padding-right:22px; }
+.ecat-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ecat-icon svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.ename { font-size:13.5px; font-weight:500; letter-spacing:-0.1px; }
+.eamt { font-family:'Lora',serif; font-size:16px; font-weight:400; white-space:nowrap; margin-left:8px; flex-shrink:0; }
+.emeta { font-size:11.5px; color:var(--text3); margin-bottom:7px; padding-left:36px; }
+.emeta strong { color:var(--text2); font-weight:500; }
+.echips { display:flex; flex-wrap:wrap; gap:4px; padding-left:36px; }
+.echip { font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:50px; color:white; letter-spacing:0.02em; }
+.edel { position:absolute; top:10px; right:11px; opacity:0; background:none; border:none; cursor:pointer; padding:3px; transition:all var(--t); border-radius:5px; display:flex; align-items:center; }
+.edel svg { width:12px; height:12px; stroke:var(--text3); fill:none; stroke-width:2; stroke-linecap:round; }
+.ecard:hover .edel { opacity:1; }
+.edel:hover svg { stroke:var(--red); }
+
+/* ── TABS ── */
+.tabs-bar { display:flex; background:var(--surface2); border-radius:10px; padding:3px; gap:2px; margin-bottom:18px; }
+.tab { flex:1; height:29px; background:transparent; border:none; border-radius:7px; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:500; color:var(--text2); cursor:pointer; transition:all var(--t); }
+.tab:hover { color:var(--text); }
+.tab.on { background:var(--surface); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.09); }
+.tabp { display:none; }
+.tabp.on { display:block; }
+
+/* ── BALANCES ── */
+.bal-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+.bal-row:last-child { border-bottom:none; }
+.bal-person { display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:500; }
+.avsm { width:30px; height:30px; border-radius:50%; font-size:11px; font-weight:600; color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; letter-spacing:-0.3px; }
+.bal-amt { font-family:'Lora',serif; font-size:16px; font-weight:400; }
+.pos { color:var(--green); }
+.neg { color:var(--red); }
+.zero { color:var(--text3); }
+
+/* ── SUMMARY ── */
+.sum-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.sumcard { background:var(--surface2); border-radius:var(--r-md); padding:13px 15px; }
+.sumcard-lbl { font-size:11px; color:var(--text3); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:5px; }
+.sumcard-val { font-family:'Lora',serif; font-size:22px; font-weight:400; }
+.cat-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-top:1px solid var(--border); font-size:13px; }
+.cat-left { display:flex; align-items:center; gap:8px; color:var(--text2); }
+.cat-left svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.cat-right { font-weight:500; }
+.cat-pct { font-size:11px; color:var(--text3); margin-left:5px; }
+.pbar-track { height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; margin-bottom:3px; }
+.pbar-fill { height:100%; border-radius:2px; transition:width 0.4s ease; }
+
+/* ── SETTLE ── */
+.settle-item { display:flex; align-items:center; gap:9px; background:var(--surface2); border-radius:var(--r-md); padding:12px 14px; margin-bottom:7px; font-size:13.5px; }
+.settle-item:last-child { margin-bottom:0; }
+.settle-arr { display:flex; align-items:center; color:var(--text3); flex-shrink:0; }
+.settle-arr svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.settle-name { font-weight:500; }
+.settle-amt { margin-left:auto; font-family:'Lora',serif; font-size:16px; color:var(--orange); white-space:nowrap; }
+.av26 { width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:600; color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; letter-spacing:-0.3px; }
+
+/* ── EMPTY ── */
+.empty { padding:28px 16px; text-align:center; color:var(--text3); }
+.empty-icon { width:38px; height:38px; background:var(--surface2); border-radius:var(--r-md); margin:0 auto 10px; display:flex; align-items:center; justify-content:center; }
+.empty-icon svg { width:18px; height:18px; stroke:var(--text3); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+.empty p { font-size:13px; line-height:1.65; }
+
+/* ── SHARE MODAL ── */
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:500; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+.modal-bg.show { opacity:1; pointer-events:all; }
+.modal { background:var(--surface); border-radius:var(--r-xl); padding:28px; max-width:480px; width:calc(100% - 40px); box-shadow:var(--shadow-lg); transform:translateY(8px) scale(0.98); transition:all 0.22s cubic-bezier(0.34,1.4,0.64,1); }
+.modal-bg.show .modal { transform:none; }
+.modal h2 { font-family:'Lora',serif; font-size:20px; font-weight:400; letter-spacing:-0.02em; margin-bottom:6px; }
+.modal-sub { font-size:13px; color:var(--text2); margin-bottom:20px; line-height:1.6; }
+.url-box { display:flex; gap:7px; margin-bottom:16px; }
+.url-field { flex:1; height:38px; padding:0 12px; background:var(--bg); border:1px solid var(--border-med); border-radius:var(--r-sm); font-family:'Inter',sans-serif; font-size:12px; color:var(--text2); outline:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.modal-note { font-size:12px; color:var(--text3); line-height:1.6; }
+.modal-note strong { color:var(--text2); font-weight:500; }
+.modal-close { position:absolute; top:18px; right:20px; background:none; border:none; cursor:pointer; padding:4px; border-radius:6px; display:flex; }
+.modal-close:hover { background:var(--surface2); }
+.modal-close svg { width:16px; height:16px; stroke:var(--text2); fill:none; stroke-width:2; stroke-linecap:round; }
+.modal { position:relative; }
+
+/* ── SHARED BANNER ── */
+.shared-banner { max-width:960px; margin:0 auto; padding:0 32px 12px; }
+.sbanner { background:#FFF7ED; border:1px solid #FED7AA; border-radius:var(--r-md); padding:11px 16px; display:flex; align-items:center; gap:10px; font-size:13px; }
+.sbanner svg { width:15px; height:15px; stroke:#C2410C; fill:none; stroke-width:1.8; stroke-linecap:round; flex-shrink:0; }
+.sbanner-text { flex:1; color:#7C2D12; }
+.sbanner-text strong { font-weight:600; }
+
+/* ── MISC ── */
+.divider { height:1px; background:var(--border); margin:14px 0; }
+.sec-lbl { font-size:11px; font-weight:500; color:var(--text3); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(70px); background:var(--text); color:white; padding:9px 18px; border-radius:50px; font-size:13px; font-weight:500; opacity:0; transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1); z-index:600; pointer-events:none; box-shadow:var(--shadow-lg); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+footer { border-top:1px solid var(--border); padding:22px 32px; text-align:center; font-size:12px; color:var(--text3); }
+footer a { color:var(--text2); text-decoration:none; }
+footer a:hover { color:var(--text); }
+
+@media(max-width:720px) {
+  .app { grid-template-columns:1fr; padding:0 16px 60px; }
+  .hero { grid-template-columns:1fr; padding:44px 16px 36px; }
+  .hero-right { flex-direction:row; align-items:center; flex-wrap:wrap; }
+  .hero-stats { flex-direction:row; flex:1; }
+  .hero-share-btn { flex:0 0 auto; }
+  .ad-wrap, .shared-banner { padding-left:16px; padding-right:16px; }
+  .topbar { padding:0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── SVG ICON DEFS ── -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- X (close) -->
+    <symbol id="ico-x" viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></symbol>
+    <!-- Plane -->
+    <symbol id="ico-transport" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></symbol>
+    <!-- Building / hotel -->
+    <symbol id="ico-accommodation" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+    <!-- Fork + knife -->
+    <symbol id="ico-food" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4v13"/><path d="M9 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6h3.5"/><path d="M16.5 13H20V22h-3.5V13z"/></symbol>
+    <!-- Ticket -->
+    <symbol id="ico-activities" viewBox="0 0 24 24"><path d="M15 5H3a1 1 0 0 0-1 1v4a2 2 0 0 1 0 4v4a1 1 0 0 0 1 1h12"/><path d="M9 5v14"/><path d="M22 5l-3 7 3 7H9"/></symbol>
+    <!-- Shopping bag -->
+    <symbol id="ico-shopping" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+    <!-- Fuel pump -->
+    <symbol id="ico-fuel" viewBox="0 0 24 24"><path d="M3 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8"/><path d="M3 11h12"/><path d="M15 5h1a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-1"/><line x1="15" y1="22" x2="22" y2="22"/></symbol>
+    <!-- Box -->
+    <symbol id="ico-other" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+    <!-- Users -->
+    <symbol id="ico-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <!-- Plus -->
+    <symbol id="ico-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <!-- Share -->
+    <symbol id="ico-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+    <!-- Copy -->
+    <symbol id="ico-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+    <!-- Arrow right -->
+    <symbol id="ico-arrow-r" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+    <!-- Check -->
+    <symbol id="ico-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <!-- Receipt / list -->
+    <symbol id="ico-receipt" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></symbol>
+    <!-- Scale / balance -->
+    <symbol id="ico-balance" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 21h14"/><path d="M5 3l7 6 7-6"/></symbol>
+    <!-- Sparkle / settle -->
+    <symbol id="ico-settle" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+    <!-- Info circle -->
+    <symbol id="ico-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+  </defs>
+</svg>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <a class="brand" href="#">
+    <div class="brand-mark">
+      <svg viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6.5 1L12 4.25V9.75L6.5 13L1 9.75V4.25L6.5 1Z" fill="white"/>
+      </svg>
+    </div>
+    TripSplit
+  </a>
+</header>
+
+<!-- SHARED BANNER (shown when loaded from URL) -->
+<div class="shared-banner" id="shared-banner" style="display:none">
+  <div class="sbanner">
+    <svg><use href="#ico-info"/></svg>
+    <div class="sbanner-text"><strong>Trip loaded from shared link.</strong> You're viewing a shared trip — any changes you make won't affect the original link.</div>
+    <button class="btn btn-sm" onclick="document.getElementById('shared-banner').style.display='none'" style="flex-shrink:0">Dismiss</button>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div>
+    <div class="eyebrow">Travel expenses</div>
+    <h1>Split fairly,<br><em>settle simply.</em></h1>
+    <p class="hero-p">Add your group, log who paid what and who it covers — we calculate the fewest transfers to settle everything.</p>
+  </div>
+  <div class="hero-right">
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-val" id="stat-total">€0</div>
+        <div class="hstat-lbl">Total spent</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val" id="stat-txns">0</div>
+        <div class="hstat-lbl">Transfers needed</div>
+      </div>
+    </div>
+    <button class="hero-share-btn" onclick="openShare()">
+      <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><use href="#ico-share"/></svg>
+      Share trip with group
+    </button>
+  </div>
+</section>
+
+<!-- ── AD ── -->
+<div class="ad-wrap">
+  <div class="ad-slot">Advertisement · 728×90 · Replace with Google AdSense</div>
+</div>
+
+<!-- ── APP ── -->
+<main class="app">
+
+  <!-- LEFT -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- PEOPLE -->
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">
+          <div class="ph-ico"><svg><use href="#ico-users"/></svg></div>
+          Group
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="clearAll()">Clear all</button>
+      </div>
+      <div class="pb">
+        <div class="people-grid" id="people-list">
+          <span style="font-size:12px;color:var(--text3)">No members yet</span>
+        </div>
+        <div class="add-row">
+          <input class="inp" type="text" id="new-person" placeholder="Name, e.g. Ana" onkeydown="if(event.key==='Enter')addPerson()">
+          <button class="btn btn-primary" onclick="addPerson()">
+            <svg><use href="#ico-plus"/></svg>
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD EXPENSE -->
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">
+          <div class="ph-ico"><svg><use href="#ico-plus"/></svg></div>
+          New expense
+        </div>
+      </div>
+      <div class="pb">
+        <div class="field">
+          <label class="lbl">Description</label>
+          <input class="inp" type="text" id="exp-name" placeholder="e.g. Airbnb, dinner, train…">
+        </div>
+        <div class="field">
+          <div class="inp-row">
+            <div>
+              <label class="lbl">Amount (€)</label>
+              <input class="inp" type="number" id="exp-amount" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div>
+              <label class="lbl">Paid by</label>
+              <select class="inp" id="exp-payer"></select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="lbl">Category</label>
+          <div class="cat-select-grid" id="cat-select">
+            <div class="cat-opt on" data-cat="transport" onclick="selectCat(this)"><svg><use href="#ico-transport"/></svg>Transport</div>
+            <div class="cat-opt" data-cat="accommodation" onclick="selectCat(this)"><svg><use href="#ico-accommodation"/></svg>Hotel</div>
+            <div class="cat-opt" data-cat="food" onclick="selectCat(this)"><svg><use href="#ico-food"/></svg>Food</div>
+            <div class="cat-opt" data-cat="activities" onclick="selectCat(this)"><svg><use href="#ico-activities"/></svg>Activity</div>
+            <div class="cat-opt" data-cat="shopping" onclick="selectCat(this)"><svg><use href="#ico-shopping"/></svg>Shopping</div>
+            <div class="cat-opt" data-cat="fuel" onclick="selectCat(this)"><svg><use href="#ico-fuel"/></svg>Fuel</div>
+            <div class="cat-opt" data-cat="other" onclick="selectCat(this)"><svg><use href="#ico-other"/></svg>Other</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="lbl">Split between</label>
+          <div class="split-actions">
+            <button class="btn btn-sm" onclick="selectAll()">All</button>
+            <button class="btn btn-sm" onclick="clearSplit()">None</button>
+          </div>
+          <div class="split-grid" id="split-checks">
+            <span style="font-size:12px;color:var(--text3)">Add members first</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addExpense()" style="height:38px;font-size:13.5px;margin-top:4px">
+          Add expense
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div>
+    <div class="panel" style="min-height:460px;">
+      <div class="ph" style="padding-bottom:0;border-bottom:none;">
+        <div class="tabs-bar" style="margin:0;flex:1;">
+          <button class="tab on" data-tab="expenses" onclick="switchTab(this)">
+            Expenses
+          </button>
+          <button class="tab" data-tab="balances" onclick="switchTab(this)">Balances</button>
+          <button class="tab" data-tab="settle" onclick="switchTab(this)">Settle up</button>
+        </div>
+      </div>
+      <div class="pb" style="padding-top:16px;">
+
+        <!-- EXPENSES -->
+        <div class="tabp on" id="tab-expenses">
+          <div id="expense-list">
+            <div class="empty">
+              <div class="empty-icon"><svg><use href="#ico-receipt"/></svg></div>
+              <p>No expenses yet.<br>Add your first one to get started.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- BALANCES -->
+        <div class="tabp" id="tab-balances">
+          <div class="sum-grid">
+            <div class="sumcard">
+              <div class="sumcard-lbl">Total spent</div>
+              <div class="sumcard-val" id="sum-total">€0</div>
+            </div>
+            <div class="sumcard">
+              <div class="sumcard-lbl">Per person</div>
+              <div class="sumcard-val" id="sum-per">€0</div>
+            </div>
+          </div>
+          <div id="cat-breakdown"></div>
+          <div class="divider"></div>
+          <div class="sec-lbl">Individual balances</div>
+          <div id="balance-list">
+            <div class="empty"><p style="padding:6px 0">Add expenses to see balances.</p></div>
+          </div>
+        </div>
+
+        <!-- SETTLE -->
+        <div class="tabp" id="tab-settle">
+          <div id="settle-list">
+            <div class="empty">
+              <div class="empty-icon"><svg><use href="#ico-settle"/></svg></div>
+              <p>No settlements needed yet.<br>Add expenses to see who owes who.</p>
+            </div>
+          </div>
+          <div id="settle-foot"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div class="ad-slot" style="height:72px;">Advertisement · 300×250 · Google AdSense</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <!-- © 2024 TripSplit · <a href="index.html">CalcHub →</a> -->
+</footer>
+
+<!-- ── SHARE MODAL ── -->
+<div class="modal-bg" id="share-modal" onclick="if(event.target===this)closeShare()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeShare()"><svg><use href="#ico-x"/></svg></button>
+    <h2>Share this trip</h2>
+    <p class="modal-sub">Anyone with this link can view the full trip, expenses and settlements. Great for syncing with all group members.</p>
+    <div class="url-box">
+      <input class="url-field" id="share-url" readonly>
+      <button class="btn btn-primary" onclick="copyLink()" id="copy-btn">
+        <svg><use href="#ico-copy"/></svg>
+        Copy
+      </button>
+    </div>
+    <p class="modal-note">
+      <strong>How it works:</strong> all trip data is encoded directly in the URL — no account or server needed. Share it via WhatsApp, email or any chat. Recipients load the full trip instantly.
+    </p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let people = [];
+let expenses = [];
+let sel = new Set();
+let activeCat = 'transport';
+
+const PAL = ['#1A1917','#C2410C','#1D4ED8','#166534','#6D28D9','#B45309','#BE185D','#0F766E'];
+const CCOL = {transport:'#1D4ED8',accommodation:'#166534',food:'#C2410C',activities:'#6D28D9',shopping:'#BE185D',fuel:'#B45309',other:'#4B5563'};
+const CNAME = {transport:'Transport',accommodation:'Accommodation',food:'Food & drink',activities:'Activities',shopping:'Shopping',fuel:'Fuel',other:'Other'};
+const CAT_ICON_ID = {transport:'ico-transport',accommodation:'ico-accommodation',food:'ico-food',activities:'ico-activities',shopping:'ico-shopping',fuel:'ico-fuel',other:'ico-other'};
+
+const col = n => PAL[people.indexOf(n) % PAL.length] || '#888';
+const ini = n => n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmt = n => '€' + Math.abs(+n).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function toast(msg, dur=2100) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+// ── ICON HELPER ──
+function svgUse(id, size=14, extra='') {
+  return `<svg style="width:${size}px;height:${size}px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round" ${extra}><use href="#${id}"/></svg>`;
+}
+
+// ── PEOPLE ──
+function addPerson() {
+  const inp = document.getElementById('new-person');
+  const name = inp.value.trim();
+  if(!name) return;
+  if(people.includes(name)){toast('Already in group');return;}
+  people.push(name); sel.add(name); inp.value = '';
+  renderPeople(); renderSplit(); renderPayer();
+}
+function removePerson(name) {
+  people = people.filter(p=>p!==name); sel.delete(name);
+  renderPeople(); renderSplit(); renderPayer();
+}
+function renderPeople() {
+  const el = document.getElementById('people-list');
+  if(!people.length){el.innerHTML='<span style="font-size:12px;color:var(--text3)">No members yet</span>';return;}
+  el.innerHTML = people.map(p=>`
+    <div class="pchip">
+      <div class="avxs" style="background:${col(p)}">${ini(p)}</div>
+      ${p}
+      <button class="pchip-rm" onclick="removePerson('${escQ(p)}')">${svgUse('ico-x',10)}</button>
+    </div>`).join('');
+}
+function renderPayer() {
+  const s = document.getElementById('exp-payer');
+  s.innerHTML = people.map(p=>`<option>${p}</option>`).join('') || '<option>—</option>';
+}
+function escQ(s){ return s.replace(/'/g,"&#39;"); }
+
+// ── SPLIT ──
+function renderSplit() {
+  const el = document.getElementById('split-checks');
+  if(!people.length){el.innerHTML='<span style="font-size:12px;color:var(--text3)">Add members first</span>';return;}
+  sel = new Set([...sel].filter(p=>people.includes(p)));
+  el.innerHTML = people.map(p=>`
+    <div class="stoggle ${sel.has(p)?'on':''}" onclick="toggleSplit('${escQ(p)}')">
+      <div class="avxs" style="background:${col(p)}">${ini(p)}</div>
+      ${p}
+    </div>`).join('');
+}
+function toggleSplit(n){sel.has(n)?sel.delete(n):sel.add(n);renderSplit();}
+function selectAll(){people.forEach(p=>sel.add(p));renderSplit();}
+function clearSplit(){sel.clear();renderSplit();}
+
+// ── CATEGORY ──
+function selectCat(el) {
+  document.querySelectorAll('.cat-opt').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  activeCat = el.dataset.cat;
+}
+function setCatUI(cat) {
+  document.querySelectorAll('.cat-opt').forEach(c=>{
+    c.classList.toggle('on', c.dataset.cat===cat);
+  });
+  activeCat = cat;
+}
+
+// ── EXPENSES ──
+function addExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  const payer = document.getElementById('exp-payer').value;
+  const split = [...sel];
+  const cat = activeCat;
+  if(!name||!amount||amount<=0){toast('Fill in description and amount');return;}
+  if(!payer||!people.length){toast('Add group members first');return;}
+  if(!split.length){toast('Select at least one person');return;}
+  expenses.push({id:Date.now(),name,amount,payer,split,cat});
+  document.getElementById('exp-name').value='';
+  document.getElementById('exp-amount').value='';
+  toast('Expense added ✓');
+  renderAll();
+}
+function removeExpense(id){expenses=expenses.filter(e=>e.id!==id);renderAll();}
+
+function renderAll(){renderExpenses();renderBalances();renderSettle();renderHeroStats();}
+
+function catIconSvg(cat, color='currentColor', size=14) {
+  const id = CAT_ICON_ID[cat]||'ico-other';
+  return `<svg style="width:${size}px;height:${size}px;stroke:${color};fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><use href="#${id}"/></svg>`;
+}
+
+function renderExpenses() {
+  const el = document.getElementById('expense-list');
+  if(!expenses.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${svgUse('ico-receipt',18)}</div><p>No expenses yet.<br>Add your first one to get started.</p></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="exp-list">${expenses.map(e=>{
+    const cc = CCOL[e.cat]||'#4B5563';
+    return `<div class="ecard">
+      <button class="edel" onclick="removeExpense(${e.id})">${svgUse('ico-x',12)}</button>
+      <div class="etop">
+        <div class="ename-wrap">
+          <div class="ecat-icon" style="background:${cc}18;color:${cc}">${catIconSvg(e.cat,cc,14)}</div>
+          <div class="ename">${e.name}</div>
+        </div>
+        <div class="eamt">${fmt(e.amount)}</div>
+      </div>
+      <div class="emeta">Paid by <strong style="color:${col(e.payer)}">${e.payer}</strong> &nbsp;·&nbsp; ${fmt(e.amount/e.split.length)} each &nbsp;·&nbsp; ${e.split.length} ${e.split.length===1?'person':'people'}</div>
+      <div class="echips">${e.split.map(p=>`<span class="echip" style="background:${col(p)}">${ini(p)}</span>`).join('')}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── BALANCES ──
+function calcBal() {
+  const b={};
+  people.forEach(p=>b[p]=0);
+  expenses.forEach(e=>{
+    b[e.payer]=(b[e.payer]||0)+e.amount;
+    const share=e.amount/e.split.length;
+    e.split.forEach(p=>{b[p]=(b[p]||0)-share;});
+  });
+  return b;
+}
+
+function renderBalances() {
+  const bal=calcBal();
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('sum-total').textContent=fmt(total);
+  document.getElementById('sum-per').textContent=fmt(people.length?total/people.length:0);
+  const byCat={};
+  expenses.forEach(e=>{byCat[e.cat]=(byCat[e.cat]||0)+e.amount;});
+  const catEl=document.getElementById('cat-breakdown');
+  catEl.innerHTML=total>0?Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
+    const cc=CCOL[cat]||'#888';
+    return `<div class="cat-row">
+      <div class="cat-left" style="color:${cc}">${catIconSvg(cat,cc,13)}<span style="color:var(--text2)">${CNAME[cat]||cat}</span></div>
+      <div><span class="cat-right">${fmt(amt)}</span><span class="cat-pct">${(amt/total*100).toFixed(0)}%</span></div>
+    </div>
+    <div class="pbar-track"><div class="pbar-fill" style="width:${(amt/total*100).toFixed(1)}%;background:${cc}"></div></div>`;
+  }).join(''):'';
+  const el=document.getElementById('balance-list');
+  if(!people.length){el.innerHTML='<div class="empty"><p>Add members and expenses.</p></div>';return;}
+  el.innerHTML=Object.entries(bal).sort((a,b)=>b[1]-a[1]).map(([name,val])=>`
+    <div class="bal-row">
+      <div class="bal-person"><div class="avsm" style="background:${col(name)}">${ini(name)}</div>${name}</div>
+      <div class="bal-amt ${val>0.005?'pos':val<-0.005?'neg':'zero'}">${val>0.005?'+':''}${fmt(val)}</div>
+    </div>`).join('');
+}
+
+// ── SETTLE ──
+function calcSettle() {
+  const bal=calcBal();
+  const cr=[],de=[];
+  Object.entries(bal).forEach(([n,v])=>{
+    if(v>0.005)cr.push({name:n,amount:v});
+    else if(v<-0.005)de.push({name:n,amount:-v});
+  });
+  cr.sort((a,b)=>b.amount-a.amount); de.sort((a,b)=>b.amount-a.amount);
+  const txs=[]; let i=0,j=0;
+  while(i<cr.length&&j<de.length){
+    const pay=Math.min(cr[i].amount,de[j].amount);
+    txs.push({from:de[j].name,to:cr[i].name,amount:pay});
+    cr[i].amount-=pay; de[j].amount-=pay;
+    if(cr[i].amount<0.005)i++; if(de[j].amount<0.005)j++;
+  }
+  return txs;
+}
+
+function renderSettle() {
+  const txs=calcSettle();
+  const el=document.getElementById('settle-list');
+  const foot=document.getElementById('settle-foot');
+  if(!txs.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${svgUse('ico-check',18)}</div><p>No settlements needed yet.<br>Add expenses to see who owes who.</p></div>`;
+    foot.innerHTML=''; return;
+  }
+  el.innerHTML=txs.map(tx=>`
+    <div class="settle-item">
+      <div class="av26" style="background:${col(tx.from)}">${ini(tx.from)}</div>
+      <span class="settle-name">${tx.from}</span>
+      <span class="settle-arr">${svgUse('ico-arrow-r',14)}</span>
+      <span class="settle-name">${tx.to}</span>
+      <div class="av26" style="background:${col(tx.to)}">${ini(tx.to)}</div>
+      <div class="settle-amt">${fmt(tx.amount)}</div>
+    </div>`).join('');
+  foot.innerHTML=`<p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px">${txs.length} transfer${txs.length!==1?'s':''} to settle all debts</p>`;
+}
+
+function renderHeroStats() {
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('stat-total').textContent=fmt(total);
+  document.getElementById('stat-txns').textContent=calcSettle().length;
+}
+
+// ── TABS ──
+function switchTab(btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tabp').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tab-'+btn.dataset.tab).classList.add('on');
+}
+
+// ── URL SHARE ──
+function encodeState() {
+  const state = { p: people, e: expenses.map(e=>({i:e.id,n:e.name,a:e.amount,py:e.payer,s:e.split,c:e.cat})) };
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  } catch(err) { return null; }
+}
+
+function decodeState(hash) {
+  try {
+    const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+    const state = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    return state;
+  } catch(err) { return null; }
+}
+
+function buildShareURL() {
+  const encoded = encodeState();
+  if(!encoded) return window.location.href;
+  const base = window.location.href.split('#')[0];
+  return base + '#' + encoded;
+}
+
+function openShare() {
+  if(!people.length && !expenses.length) { toast('Add people and expenses first'); return; }
+  const url = buildShareURL();
+  document.getElementById('share-url').value = url;
+  document.getElementById('share-modal').classList.add('show');
+}
+function closeShare() { document.getElementById('share-modal').classList.remove('show'); }
+
+function copyLink() {
+  const url = document.getElementById('share-url').value;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.getElementById('copy-btn');
+    btn.innerHTML = `${svgUse('ico-check',13)} Copied!`;
+    btn.style.background = '#166534';
+    btn.style.borderColor = '#166534';
+    setTimeout(()=>{
+      btn.innerHTML = `${svgUse('ico-copy',13)} Copy`;
+      btn.style.background=''; btn.style.borderColor='';
+    }, 2000);
+  }).catch(()=>{
+    const field = document.getElementById('share-url');
+    field.select(); document.execCommand('copy');
+    toast('Link copied!');
+  });
+}
+
+// ── LOAD FROM URL ──
+function tryLoadFromURL() {
+  const hash = window.location.hash;
+  if(!hash || hash.length < 4) return false;
+  const state = decodeState(hash);
+  if(!state || !state.p) return false;
+  people = state.p || [];
+  expenses = (state.e||[]).map(e=>({id:e.i, name:e.n, amount:e.a, payer:e.py, split:e.s, cat:e.c}));
+  sel = new Set(people);
+  renderPeople(); renderSplit(); renderPayer(); renderAll();
+  document.getElementById('shared-banner').style.display = 'block';
+  return true;
+}
+
+// ── DEMO ──
+function loadDemo() {
+  people=['Ana','Bruno','Carla','David'];
+  expenses=[
+    {id:1,name:'Train tickets (Ana & Bruno)',amount:120,payer:'Ana',split:['Ana','Bruno'],cat:'transport'},
+    {id:2,name:'Airbnb apartment',amount:600,payer:'Bruno',split:['Ana','Bruno','Carla','David'],cat:'accommodation'},
+    {id:3,name:'Dinner at Tasca do Chico',amount:95.50,payer:'Carla',split:['Ana','Bruno','Carla','David'],cat:'food'},
+    {id:4,name:'Museum + guided tour',amount:48,payer:'David',split:['Carla','David'],cat:'activities'},
+    {id:5,name:'Groceries & breakfast',amount:67.30,payer:'Ana',split:['Ana','Bruno','Carla','David'],cat:'food'},
+    {id:6,name:'Car rental',amount:220,payer:'Bruno',split:['Ana','Bruno','Carla','David'],cat:'fuel'},
+  ];
+  sel = new Set(people);
+  renderPeople(); renderSplit(); renderPayer(); renderAll();
+  toast('Demo trip loaded ✓');
+}
+
+function clearAll() {
+  if(expenses.length&&!confirm('Clear everything?'))return;
+  people=[]; expenses=[]; sel=new Set();
+  // clear hash
+  history.replaceState(null,'',window.location.pathname+window.location.search);
+  renderPeople(); renderSplit(); renderPayer(); renderAll();
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  tryLoadFromURL();
+});
+</script>
+</body>
+</html>
