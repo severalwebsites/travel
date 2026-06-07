@@ -193,6 +193,40 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color
 .sbanner-text { flex:1; color:#7C2D12; }
 .sbanner-text strong { font-weight:600; }
 
+/* ── EDIT MODAL ── */
+.edit-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+.edit-modal-bg.show { opacity:1; pointer-events:all; }
+.edit-modal { background:var(--surface); border-radius:var(--r-xl); padding:28px; max-width:480px; width:calc(100% - 40px); box-shadow:var(--shadow-lg); transform:translateY(8px) scale(0.98); transition:all 0.22s cubic-bezier(0.34,1.4,0.64,1); position:relative; }
+.edit-modal-bg.show .edit-modal { transform:none; }
+.edit-modal h2 { font-family:'Lora',serif; font-size:20px; font-weight:400; letter-spacing:-0.02em; margin-bottom:18px; }
+.edit-modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+/* edit button on ecard */
+.eedit { position:absolute; top:10px; right:30px; opacity:0; background:none; border:none; cursor:pointer; padding:3px; transition:all var(--t); border-radius:5px; display:flex; align-items:center; }
+.eedit svg { width:12px; height:12px; stroke:var(--text3); fill:none; stroke-width:2; stroke-linecap:round; }
+.ecard:hover .eedit { opacity:1; }
+.eedit:hover svg { stroke:var(--text); }
+.edel { position:absolute; top:10px; right:11px; opacity:0; background:none; border:none; cursor:pointer; padding:3px; transition:all var(--t); border-radius:5px; display:flex; align-items:center; }
+
+/* ── SPENT TAB ── */
+.spent-row { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); }
+.spent-row:last-child { border-bottom:none; }
+.spent-person { display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:500; }
+.spent-right { text-align:right; }
+.spent-amt { font-family:'Lora',serif; font-size:16px; font-weight:400; }
+.spent-share { font-size:11px; color:var(--text3); margin-top:1px; }
+.spent-bar-wrap { margin:16px 0 6px; }
+.spent-bar-label { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:5px; letter-spacing:0.03em; text-transform:uppercase; }
+.spent-bar-track { height:5px; background:var(--surface3); border-radius:3px; overflow:hidden; margin-bottom:8px; }
+.spent-bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+
+/* ── HERO SHARE TOOLTIP ── */
+.hero-share-wrap { position:relative; display:flex; flex-direction:column; align-items:stretch; }
+.hero-share-tooltip { position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(4px); background:#1A1917; color:white; border-radius:10px; padding:10px 14px; width:230px; pointer-events:none; opacity:0; transition:opacity 0.18s ease, transform 0.18s ease; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.22); }
+.hero-share-wrap:hover .hero-share-tooltip { opacity:1; transform:translateX(-50%) translateY(0); }
+.hero-share-tooltip::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#1A1917; }
+.hero-share-tooltip strong { display:block; font-size:12px; font-weight:600; margin-bottom:4px; }
+.hero-share-tooltip span { font-size:11px; color:rgba(255,255,255,0.65); line-height:1.5; }
+
 /* ── MISC ── */
 .divider { height:1px; background:var(--border); margin:14px 0; }
 .sec-lbl { font-size:11px; font-weight:500; color:var(--text3); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
@@ -254,6 +288,8 @@ footer a:hover { color:var(--text); }
     <symbol id="ico-settle" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
     <!-- Info circle -->
     <symbol id="ico-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+    <!-- Pencil / edit -->
+    <symbol id="ico-pencil" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
   </defs>
 </svg>
 
@@ -296,10 +332,16 @@ footer a:hover { color:var(--text); }
         <div class="hstat-lbl">Transfers needed</div>
       </div>
     </div>
-    <button class="hero-share-btn" onclick="openShare()">
-      <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><use href="#ico-share"/></svg>
-      Share trip with group
-    </button>
+    <div class="hero-share-wrap">
+      <div class="hero-share-tooltip">
+        <strong>This link is your save file</strong>
+        <span>Generates a URL with all your expenses. Open it later to add more, then save &amp; share again for an updated link.</span>
+      </div>
+      <button class="hero-share-btn" onclick="openShare()" style="background:var(--orange);border-color:var(--orange);padding:13px 18px;height:auto;font-size:14px;font-weight:600;letter-spacing:-0.2px;box-shadow:0 4px 14px rgba(194,65,12,0.4);">
+        <svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><use href="#ico-share"/></svg>
+        Save &amp; Share Trip
+      </button>
+    </div>
   </div>
 </section>
 
@@ -402,6 +444,7 @@ footer a:hover { color:var(--text); }
           </button>
           <button class="tab" data-tab="balances" onclick="switchTab(this)">Balances</button>
           <button class="tab" data-tab="settle" onclick="switchTab(this)">Settle up</button>
+          <button class="tab" data-tab="spent" onclick="switchTab(this)">Spent</button>
         </div>
       </div>
       <div class="pb" style="padding-top:16px;">
@@ -447,6 +490,17 @@ footer a:hover { color:var(--text); }
           <div id="settle-foot"></div>
         </div>
 
+        <!-- SPENT -->
+        <div class="tabp" id="tab-spent">
+          <div class="sec-lbl" style="margin-bottom:14px;">Each person's share by category</div>
+          <div id="spent-list">
+            <div class="empty">
+              <div class="empty-icon"><svg><use href="#ico-balance"/></svg></div>
+              <p>Add expenses to see<br>each person's breakdown.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -460,12 +514,61 @@ footer a:hover { color:var(--text); }
   <!-- © 2024 TripSplit · <a href="index.html">CalcHub →</a> -->
 </footer>
 
+<!-- ── EDIT EXPENSE MODAL ── -->
+<div class="edit-modal-bg" id="edit-modal" onclick="if(event.target===this)closeEdit()">
+  <div class="edit-modal">
+    <button class="modal-close" onclick="closeEdit()"><svg><use href="#ico-x"/></svg></button>
+    <h2>Edit expense</h2>
+    <input type="hidden" id="edit-id">
+    <div class="field">
+      <label class="lbl">Description</label>
+      <input class="inp" type="text" id="edit-name" placeholder="e.g. Airbnb, dinner, train…">
+    </div>
+    <div class="field">
+      <div class="inp-row">
+        <div>
+          <label class="lbl">Amount (€)</label>
+          <input class="inp" type="number" id="edit-amount" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label class="lbl">Paid by</label>
+          <select class="inp" id="edit-payer"></select>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lbl">Category</label>
+      <div class="cat-select-grid" id="edit-cat-select">
+        <div class="cat-opt" data-cat="transport" onclick="selectEditCat(this)"><svg><use href="#ico-transport"/></svg>Transport</div>
+        <div class="cat-opt" data-cat="accommodation" onclick="selectEditCat(this)"><svg><use href="#ico-accommodation"/></svg>Hotel</div>
+        <div class="cat-opt" data-cat="food" onclick="selectEditCat(this)"><svg><use href="#ico-food"/></svg>Food</div>
+        <div class="cat-opt" data-cat="activities" onclick="selectEditCat(this)"><svg><use href="#ico-activities"/></svg>Activity</div>
+        <div class="cat-opt" data-cat="shopping" onclick="selectEditCat(this)"><svg><use href="#ico-shopping"/></svg>Shopping</div>
+        <div class="cat-opt" data-cat="fuel" onclick="selectEditCat(this)"><svg><use href="#ico-fuel"/></svg>Fuel</div>
+        <div class="cat-opt" data-cat="other" onclick="selectEditCat(this)"><svg><use href="#ico-other"/></svg>Other</div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lbl">Split between</label>
+      <div style="display:flex;gap:4px;margin-bottom:8px;">
+        <button class="btn btn-sm" onclick="selectAllEdit()">All</button>
+        <button class="btn btn-sm" onclick="clearAllEdit()">None</button>
+      </div>
+      <div class="split-grid" id="edit-split-checks"></div>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── SHARE MODAL ── -->
 <div class="modal-bg" id="share-modal" onclick="if(event.target===this)closeShare()">
   <div class="modal">
     <button class="modal-close" onclick="closeShare()"><svg><use href="#ico-x"/></svg></button>
-    <h2>Share this trip</h2>
-    <p class="modal-sub">Anyone with this link can view the full trip, expenses and settlements. Great for syncing with all group members.</p>
+    <h2>Save &amp; Share trip</h2>
+    <p class="modal-sub">This link <strong>is your save file</strong> — it encodes all your expenses into the URL. Bookmark it, share it with the group, or open it later to keep adding expenses and then generate a fresh link.</p>
     <div class="url-box">
       <input class="url-field" id="share-url" readonly>
       <button class="btn btn-primary" onclick="copyLink()" id="copy-btn">
@@ -474,7 +577,7 @@ footer a:hover { color:var(--text); }
       </button>
     </div>
     <p class="modal-note">
-      <strong>How it works:</strong> all trip data is encoded directly in the URL — no account or server needed. Share it via WhatsApp, email or any chat. Recipients load the full trip instantly.
+      <strong>No account needed.</strong> All trip data lives in the URL. Share via WhatsApp, email, or any chat — recipients load everything instantly. To add more expenses later: open the link, add expenses, and press Save &amp; Share again for a new updated link.
     </p>
   </div>
 </div>
@@ -583,7 +686,65 @@ function addExpense() {
 }
 function removeExpense(id){expenses=expenses.filter(e=>e.id!==id);renderAll();}
 
-function renderAll(){renderExpenses();renderBalances();renderSettle();renderHeroStats();}
+// ── EDIT EXPENSE ──
+let editSel = new Set();
+let editCat = 'transport';
+
+function openEdit(id) {
+  const e = expenses.find(ex=>ex.id===id);
+  if(!e) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-name').value = e.name;
+  document.getElementById('edit-amount').value = e.amount;
+  // payer select
+  const ps = document.getElementById('edit-payer');
+  ps.innerHTML = people.map(p=>`<option${p===e.payer?' selected':''}>${p}</option>`).join('');
+  // cat
+  editCat = e.cat;
+  document.querySelectorAll('#edit-cat-select .cat-opt').forEach(c=>{
+    c.classList.toggle('on', c.dataset.cat===e.cat);
+  });
+  // split
+  editSel = new Set(e.split);
+  renderEditSplit();
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeEdit() { document.getElementById('edit-modal').classList.remove('show'); }
+
+function selectEditCat(el) {
+  document.querySelectorAll('#edit-cat-select .cat-opt').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  editCat = el.dataset.cat;
+}
+function renderEditSplit() {
+  const el = document.getElementById('edit-split-checks');
+  el.innerHTML = people.map(p=>`
+    <div class="stoggle ${editSel.has(p)?'on':''}" onclick="toggleEditSplit('${escQ(p)}')">
+      <div class="avxs" style="background:${col(p)}">${ini(p)}</div>
+      ${p}
+    </div>`).join('');
+}
+function toggleEditSplit(n){editSel.has(n)?editSel.delete(n):editSel.add(n);renderEditSplit();}
+function selectAllEdit(){people.forEach(p=>editSel.add(p));renderEditSplit();}
+function clearAllEdit(){editSel.clear();renderEditSplit();}
+
+function saveEdit() {
+  const id = parseInt(document.getElementById('edit-id').value);
+  const name = document.getElementById('edit-name').value.trim();
+  const amount = parseFloat(document.getElementById('edit-amount').value);
+  const payer = document.getElementById('edit-payer').value;
+  const split = [...editSel];
+  if(!name||!amount||amount<=0){toast('Fill in description and amount');return;}
+  if(!split.length){toast('Select at least one person');return;}
+  const idx = expenses.findIndex(e=>e.id===id);
+  if(idx===-1) return;
+  expenses[idx] = {id,name,amount,payer,split,cat:editCat};
+  closeEdit();
+  toast('Expense updated ✓');
+  renderAll();
+}
+
+function renderAll(){renderExpenses();renderBalances();renderSettle();renderSpent();renderHeroStats();}
 
 function catIconSvg(cat, color='currentColor', size=14) {
   const id = CAT_ICON_ID[cat]||'ico-other';
@@ -599,7 +760,8 @@ function renderExpenses() {
   el.innerHTML=`<div class="exp-list">${expenses.map(e=>{
     const cc = CCOL[e.cat]||'#4B5563';
     return `<div class="ecard">
-      <button class="edel" onclick="removeExpense(${e.id})">${svgUse('ico-x',12)}</button>
+      <button class="eedit" onclick="openEdit(${e.id})" title="Edit">${svgUse('ico-pencil',12)}</button>
+      <button class="edel" onclick="removeExpense(${e.id})" title="Delete">${svgUse('ico-x',12)}</button>
       <div class="etop">
         <div class="ename-wrap">
           <div class="ecat-icon" style="background:${cc}18;color:${cc}">${catIconSvg(e.cat,cc,14)}</div>
@@ -687,6 +849,88 @@ function renderSettle() {
       <div class="settle-amt">${fmt(tx.amount)}</div>
     </div>`).join('');
   foot.innerHTML=`<p style="font-size:12px;color:var(--text3);text-align:center;margin-top:10px">${txs.length} transfer${txs.length!==1?'s':''} to settle all debts</p>`;
+}
+
+// ── SPENT TAB ──
+function renderSpent() {
+  const el = document.getElementById('spent-list');
+  if(!people.length || !expenses.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${svgUse('ico-balance',18)}</div><p>Add expenses to see<br>each person's breakdown.</p></div>`;
+    return;
+  }
+
+  // Build per-person, per-category totals
+  // spentMap[person][cat] = amount
+  const spentMap = {};
+  people.forEach(p=>{ spentMap[p]={}; });
+  expenses.forEach(e=>{
+    const share = e.amount / e.split.length;
+    e.split.forEach(p=>{
+      spentMap[p][e.cat] = (spentMap[p][e.cat]||0) + share;
+    });
+  });
+
+  // Total per person
+  const personTotal = {};
+  people.forEach(p=>{ personTotal[p] = Object.values(spentMap[p]).reduce((s,v)=>s+v,0); });
+  const grandTotal = Object.values(personTotal).reduce((s,v)=>s+v,0);
+
+  // Sort people by descending total
+  const sortedPeople = [...people].sort((a,b)=>personTotal[b]-personTotal[a]);
+
+  el.innerHTML = sortedPeople.map((name, pi)=>{
+    const pTotal = personTotal[name];
+    const pOfTrip = grandTotal>0 ? (pTotal/grandTotal*100).toFixed(0) : 0;
+    const personColor = col(name);
+
+    // Categories this person has expenses in, sorted descending
+    const cats = Object.entries(spentMap[name])
+      .filter(([,v])=>v>0)
+      .sort((a,b)=>b[1]-a[1]);
+
+    const catRows = cats.map(([cat, amt])=>{
+      const catPct = pTotal>0 ? (amt/pTotal*100) : 0;
+      const cc = CCOL[cat]||'#4B5563';
+      return `<div style="padding:5px 0;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:6px;color:${cc};">
+            ${catIconSvg(cat,cc,12)}
+            <span style="font-size:12px;color:var(--text2);">${CNAME[cat]||cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--text3);">${catPct.toFixed(0)}%</span>
+            <span style="font-family:'Lora',serif;font-size:13.5px;">${fmt(amt)}</span>
+          </div>
+        </div>
+        <div class="spent-bar-track" style="margin-bottom:0;">
+          <div class="spent-bar-fill" style="width:${catPct.toFixed(1)}%;background:${cc};"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const separator = pi < sortedPeople.length-1
+      ? `<div style="height:1px;background:var(--border-med);margin:16px 0;"></div>`
+      : '';
+
+    return `<div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <div class="avsm" style="background:${personColor}">${ini(name)}</div>
+          <span style="font-size:14px;font-weight:600;">${name}</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Lora',serif;font-size:17px;">${fmt(pTotal)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px;">${pOfTrip}% of trip</div>
+        </div>
+      </div>
+      ${catRows}
+    </div>${separator}`;
+  }).join('');
+
+  el.innerHTML += `<div style="margin-top:16px;padding-top:12px;border-top:2px solid var(--border-med);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Total trip</span>
+    <span style="font-family:'Lora',serif;font-size:19px;">${fmt(grandTotal)}</span>
+  </div>`;
 }
 
 function renderHeroStats() {
